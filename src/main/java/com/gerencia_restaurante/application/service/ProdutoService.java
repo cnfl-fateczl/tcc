@@ -42,6 +42,10 @@ public class ProdutoService {
         return produtoRepository.findById(id);
     }
 
+    public List<Produto> procurarPorNome(String nome) {
+        return produtoRepository.findByName(nome);
+    }
+
     @Transactional
     public void apagarPorId(Long id) {
         produtoRepository.deleteById(id);

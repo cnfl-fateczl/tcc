@@ -15,9 +15,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
 
-@Controller
+@RestController
 @RequestMapping("/produto")
+@CrossOrigin("*")
 public class ProdutoController {
 
     @Autowired
@@ -32,58 +35,34 @@ public class ProdutoController {
         return "produto/listagem";
     }
 
-    @GetMapping("/formulario")
-    public String mostrarFormulario(@RequestParam(required = false) Long id, Model model) {
-        AtualizarProduto dto;
-        if (id != null) {
-            Produto produto = produtoService.procurarPorId(id)
-                    .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado"));
-            dto = produtoMapper.toAtualizarProduto(produto);
-        } else {
-            dto = new AtualizarProduto(null, "", "", "", new BigDecimal("0.00"));
-        }
-        model.addAttribute("produto", dto);
-        return "produto/formulario";
+    @GetMapping("/{id}")
+    public Optional<Produto> listaUmProduto(@PathVariable Long id) {
+        return produtoService.procurarPorId(id);
     }
 
-    @PostMapping("/salvar")
-    public String salvar(@ModelAttribute("produto") @Valid AtualizarProduto dto,
-                         BindingResult result,
-                         RedirectAttributes redirectAttributes,
-                         Model model) {
-        if (result.hasErrors()) {
-            return "produto/formulario";
-        }
-        try {
-            Produto produtoSalvo = produtoService.salvarOuAtualizar(dto);
-            String mensagem = dto.id() != null
-                    ? "Produto '" + produtoSalvo.getNome() + "' atualizado com sucesso!"
-                    : "Produto '" + produtoSalvo.getNome() + "' criado com sucesso!";
-            redirectAttributes.addFlashAttribute("message", mensagem);
-            return "redirect:/produto";
-        } catch (EntityNotFoundException e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return "redirect:/produto/formulario" + (dto.id() != null ? "?id=" + dto.id() : "");
-        }
+    @GetMapping
+    @RequestMapping("buscaNomeProduto")
+    public List<Produto> buscarPorNome(@RequestParam("nome") String nome) {
+        return produtoService.procurarPorNome(nome);
     }
 
-    @GetMapping("/delete/{id}")
+    @PostMapping
     @Transactional
-    public String deleteProduto(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        try {
-            produtoService.apagarPorId(id);
-            redirectAttributes.addFlashAttribute("message", "Produto " + id + " foi apagado!");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-        }
-        return "redirect:/produto";
+    public void cadastrarProduto(@RequestBody @Valid AtualizarProduto novoProduto) {
+        produtoService.salvarOuAtualizar(novoProduto);
     }
 
-    @PutMapping
+    @DeleteMapping("/{id}")
     @Transactional
-    public String atualizar (AtualizarProduto dados) {
-        produtoService.salvarOuAtualizar(dados);
-        return "redirect:marca";
+    public void excluirProduto(@PathVariable Long id) {
+        produtoService.apagarPorId(id);
     }
+
+    @PutMapping("/{id}")
+    @Transactional
+    public void atualizarProduto(@RequestBody @Valid AtualizarProduto produtoAtualizado, @PathVariable Long id) {
+        produtoService.salvarOuAtualizar(produtoAtualizado);
+    }
+
 }
 

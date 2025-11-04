@@ -1,11 +1,13 @@
 package com.gerencia_restaurante.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.gerencia_restaurante.application.port.in.AtualizarProduto;
 import com.gerencia_restaurante.application.port.in.CadastrarProduto;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
 
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
 @Table(name = "produto")
 @Getter
@@ -21,7 +23,7 @@ public class Produto {
     private String nome;
     private String categoria;
     private String descricao;
-    private BigDecimal precoProduto;
+    private Double precoProduto;
 
     public Produto(CadastrarProduto dados){
         this.nome = dados.nome();
@@ -30,15 +32,11 @@ public class Produto {
         this.precoProduto = dados.precoProduto();
     }
 
-    public void atualizarProduto(AtualizarProduto dados){
-        if (dados.nome() == null)
-            this.nome = dados.nome();
-        if (dados.categoria() == null)
-            this.categoria = dados.categoria();
-        if (dados.descricao() == null)
-            this.descricao = dados.descricao();
-        if (dados.precoProd() == null)
-            this.precoProduto = dados.precoProd();
+    public Produto(AtualizarProduto dados){
+        this.nome = dados.nome();
+        this.categoria = dados.categoria();
+        this.descricao = dados.descricao();
+        this.precoProduto = dados.precoProduto();
     }
 
 }

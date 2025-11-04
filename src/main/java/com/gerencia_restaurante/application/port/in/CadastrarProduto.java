@@ -17,5 +17,5 @@ public record CadastrarProduto (
 
     @NotNull(message = "Preço mínimo obrigatório")
     @DecimalMin(value = "0.01", message = "Preço não pode ser zerado")
-    BigDecimal precoProduto
+    Double precoProduto
     ){}
