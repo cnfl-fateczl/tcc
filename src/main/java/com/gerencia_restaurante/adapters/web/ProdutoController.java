@@ -2,19 +2,15 @@ package com.gerencia_restaurante.adapters.web;
 
 import com.gerencia_restaurante.application.mapper.ProdutoMapper;
 import com.gerencia_restaurante.application.port.in.AtualizarProduto;
+import com.gerencia_restaurante.application.port.in.CadastrarProduto;
 import com.gerencia_restaurante.application.service.ProdutoService;
 import com.gerencia_restaurante.domain.entity.Produto;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,9 +26,9 @@ public class ProdutoController {
     private ProdutoMapper produtoMapper;
 
     @GetMapping
-    public String listaProdutos(Model model) {
-        model.addAttribute("listaProdutos", produtoService.procurarTodos());
-        return "produto/listagem";
+    @RequestMapping("/listagem")
+    public List<Produto> listaProdutos() {
+        return produtoService.procurarTodos();
     }
 
     @GetMapping("/{id}")
@@ -41,15 +37,15 @@ public class ProdutoController {
     }
 
     @GetMapping
-    @RequestMapping("buscaNomeProduto")
+    @RequestMapping("/nome")
     public List<Produto> buscarPorNome(@RequestParam("nome") String nome) {
         return produtoService.procurarPorNome(nome);
     }
 
     @PostMapping
     @Transactional
-    public void cadastrarProduto(@RequestBody @Valid AtualizarProduto novoProduto) {
-        produtoService.salvarOuAtualizar(novoProduto);
+    public void cadastrarProduto(@RequestBody @Valid CadastrarProduto novoProduto) {
+        produtoService.salvar(novoProduto);
     }
 
     @DeleteMapping("/{id}")
@@ -61,7 +57,7 @@ public class ProdutoController {
     @PutMapping("/{id}")
     @Transactional
     public void atualizarProduto(@RequestBody @Valid AtualizarProduto produtoAtualizado, @PathVariable Long id) {
-        produtoService.salvarOuAtualizar(produtoAtualizado);
+        produtoService.atualizar(produtoAtualizado);
     }
 
 }

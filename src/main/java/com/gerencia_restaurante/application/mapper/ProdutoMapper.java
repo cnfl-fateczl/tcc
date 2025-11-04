@@ -1,6 +1,7 @@
 package com.gerencia_restaurante.application.mapper;
 
 import com.gerencia_restaurante.application.port.in.AtualizarProduto;
+import com.gerencia_restaurante.application.port.in.CadastrarProduto;
 import com.gerencia_restaurante.domain.entity.Produto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -14,7 +15,7 @@ public interface ProdutoMapper {
 
     // Converte DTO para Entity (criação nova)
     @Mapping(target = "id", ignore = true)
-    Produto toProdutoFromAtualizarProduto(AtualizarProduto atualizarProduto);
+    Produto toProdutoFromCadastrarProduto(CadastrarProduto cadastrarProduto);
 
     // Atualiza Entity existente com dados do DTO
     @Mapping(target = "id", ignore = true)

@@ -2,6 +2,7 @@ package com.gerencia_restaurante.application.service;
 
 import com.gerencia_restaurante.application.mapper.ProdutoMapper;
 import com.gerencia_restaurante.application.port.in.AtualizarProduto;
+import com.gerencia_restaurante.application.port.in.CadastrarProduto;
 import com.gerencia_restaurante.domain.entity.Produto;
 import com.gerencia_restaurante.domain.repository.ProdutoRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -22,17 +23,21 @@ public class ProdutoService {
     private ProdutoMapper produtoMapper;
 
     @Transactional
-    public Produto salvarOuAtualizar(AtualizarProduto dto){
-        if (dto.id() == null){
-            Produto existente = produtoRepository.findById(dto.id())
-                    .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado com ID: " + dto.id()));
-            produtoMapper.updateProdutoFromDto(dto, existente);
-            return produtoRepository.save(existente);
-        } else {
-            Produto novo = produtoMapper.toProdutoFromAtualizarProduto(dto);
-            return produtoRepository.save(novo);
-        }
+    public Produto atualizar(AtualizarProduto dto){
+        Produto existente = produtoRepository.findById(dto.id())
+                .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado com ID: " + dto.id()));
+        produtoMapper.updateProdutoFromDto(dto, existente);
+        return produtoRepository.save(existente);
     }
+
+    @Transactional
+    public Produto salvar(CadastrarProduto dto){
+        Produto novo = produtoMapper.toProdutoFromCadastrarProduto(dto);
+        return produtoRepository.save(novo);
+
+    }
+
+
 
     public List<Produto> procurarTodos() {
         return produtoRepository.findAll();
@@ -43,7 +48,7 @@ public class ProdutoService {
     }
 
     public List<Produto> procurarPorNome(String nome) {
-        return produtoRepository.findByName(nome);
+        return produtoRepository.findByNome(nome);
     }
 
     @Transactional

@@ -3,8 +3,6 @@ package com.gerencia_restaurante.application.port.in;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 
-import java.math.BigDecimal;
-
 public record AtualizarProduto(
         Long id,
 

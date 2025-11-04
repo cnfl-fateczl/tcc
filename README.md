@@ -1,58 +1,67 @@
-# Gerencia Restaurante
+# 🍽️ Gerencia Restaurante
 
-Projeto Spring Boot com MySQL, containerizado com Docker, pronto para rodar sem precisar instalar Java ou MySQL localmente.
+Projeto desenvolvido em **Spring Boot** com **MySQL**, utilizando **Docker** para containerização — pronto para rodar sem precisar instalar Java ou MySQL localmente.
 
 ---
 
-## Estrutura de Pacotes (Arquitetura Hexagonal)
+## 🧱 Estrutura de Pacotes (Arquitetura Hexagonal)
 
 ```
 com.gerencia_restaurante
 │
-├── adapters             # Implementações externas
-│   ├── api              # Conexões com apis
-│   └──  database        # Conexão com banco de dados
+├── adapters                 # Implementações externas
+│   ├── api                  # Integrações externas / endpoints REST
+│   ├── database             # Conexão e persistência com o banco de dados
+│   └── web                  # Controladores REST (ex: ProdutoController)
 │
-├── application          # Casos de uso / regras de negócio
-│   └──  service          # Serviços da aplicação
+├── application              # Casos de uso e lógica de negócio
+│   ├── mapper               # Conversões entre entidades e DTOs
+│   ├── port.in              # Portas de entrada (use cases)
+│   └── service              # Serviços principais da aplicação
 │
-├── domain               # Modelo de domínio
-│   ├── entity           # Entidades do negócio
-│   ├── valueobject      # Objetos de valor
-│   └── exception        # Exceções do domínio
+├── domain                   # Modelo de domínio
+│   ├── entity               # Entidades principais (ex: Produto)
+│   ├── exception            # Exceções específicas do domínio
+│   └── valueobject          # Objetos de valor
 │
-└── config               # Configurações da aplicação
+├── repository               # Interfaces e implementações de persistência
+│
+└── config                   # Configurações gerais da aplicação
 ```
 
-> Observação: a camada de **persistência** implementa as interfaces definidas nos `ports` de saída e conecta o domínio ao banco de dados.
+> 💡 A camada de **adapters** implementa as interfaces definidas em **ports**, conectando o domínio com o mundo externo (banco de dados, APIs etc).
 
 ---
 
-## Pré-requisitos
+## ⚙️ Pré-requisitos
 
-1. **Docker** instalado na sua máquina
-
+1. **Docker** instalado
     * [Download Docker Desktop](https://www.docker.com/products/docker-desktop/)
-    * Certifique-se de que o Docker está rodando (`docker --version`).
+    * Verifique a instalação:
+      ```bash
+      docker --version
+      ```
 
-2. **Docker Compose** (vem incluso no Docker Desktop)
+2. **Docker Compose** (já incluso no Docker Desktop)
 
-> Não é necessário instalar Java, Maven ou MySQL na máquina.
+> ✅ Não é necessário instalar **Java**, **Maven** ou **MySQL** localmente.
 
 ---
 
-## Passo 1: Clonar o projeto
+## 🚀 Como rodar o projeto
+
+### 🧩 1. Clonar o repositório
 
 ```bash
 git clone <URL_DO_SEU_REPOSITORIO>
-cd tcc
+cd gerencia-restaurante
 ```
 
 ---
 
-## Passo 2: Configurar variáveis de banco (opcional)
+### ⚙️ 2. (Opcional) Configurar variáveis do banco
 
-No `docker-compose.yml` você pode ajustar:
+Edite o arquivo `docker-compose.yml` caso deseje alterar as credenciais:
 
 ```yaml
 MYSQL_ROOT_PASSWORD: root123
@@ -61,11 +70,11 @@ MYSQL_USER: user
 MYSQL_PASSWORD: user123
 ```
 
-Esses dados também devem estar em `application.properties` do Spring Boot.
+Esses valores também devem estar refletidos no `application.properties` do projeto.
 
 ---
 
-## Passo 3: Construir e subir os containers
+### 🐳 3. Construir e subir os containers
 
 ```bash
 docker compose up --build
@@ -73,14 +82,16 @@ docker compose up --build
 
 O Docker irá:
 
-* Criar o container MySQL (`mysql_gerencia`)
-* Criar o container da aplicação Spring Boot (`gerencia_restaurante_app`)
-* Mapear as portas padrão:
+* Criar o container do **MySQL** (`mysql_gerencia`)
+* Criar o container da aplicação **Spring Boot** (`gerencia_restaurante_app`)
+* Mapear as portas:
 
-    * MySQL: `3306` (ou altere no `docker-compose.yml`)
-    * Spring Boot: `8080`
+| Serviço        | Porta Container | Porta Host |
+|----------------|-----------------|-------------|
+| MySQL          | 3306            | 3306        |
+| Spring Boot API| 8080            | 8080        |
 
-> Se aparecer erro de porta ocupada, altere a porta do host no `docker-compose.yml`:
+> ⚠️ Se ocorrer erro de porta ocupada, altere o mapeamento no `docker-compose.yml`:
 >
 > ```yaml
 > ports:
@@ -89,21 +100,60 @@ O Docker irá:
 
 ---
 
-## Passo 4: Acessar a aplicação
+### 🌐 4. Acessar a aplicação
 
-* Spring Boot: [http://localhost:8080](http://localhost:8080)
-* MySQL: use qualquer cliente (DBeaver, TablePlus) com as credenciais configuradas.
+* **API Base:** [http://localhost:8080](http://localhost:8080)
+* **MySQL:** acesse via cliente (DBeaver, TablePlus etc.)
 
 ---
 
-## Passo 5: Parar os containers
+## 🧾 Endpoints REST (CRUD de Produto)
+
+| Método | Endpoint | Descrição |
+|--------|-----------|------------|
+| **GET** | `/produto/listagem` | Retorna todos os produtos cadastrados |
+| **GET** | `/produto/{id}` | Retorna um produto específico pelo ID |
+| **GET** | `/produto/nome?nome={nome}` | Busca produtos pelo nome |
+| **POST** | `/produto` | Cadastra um novo produto |
+| **PUT** | `/produto/{id}` | Atualiza um produto existente |
+| **DELETE** | `/produto/{id}` | Remove um produto pelo ID |
+
+📦 **Exemplo de JSON (POST / PUT)**
+
+```json
+{
+  "nome": "Burrito de Frango",
+  "categoria": "Burritos",
+  "descricao": "Burrito de frango grelhado com queijo artesanal e pimenta",
+  "precoProduto": 31.90
+}
+```
+
+---
+
+## 🔁 Atualizando a imagem Docker após mudanças no código
+
+Sempre que o projeto for atualizado (novas classes, mudanças em endpoints etc.), siga este procedimento:
+
+```bash
+# 1. Parar e remover containers antigos
+docker compose down
+
+# 2. Reconstruir a imagem com o novo código
+docker compose up --build
+```
+
+Isso recompila o projeto dentro do container e aplica todas as alterações.
+
+---
+
+## 🧨 Parar containers
 
 ```bash
 docker compose down
 ```
 
-Isso remove os containers, mas mantém os volumes do MySQL.
-Se quiser remover também os volumes:
+Para remover volumes do banco também:
 
 ```bash
 docker compose down -v
@@ -111,7 +161,11 @@ docker compose down -v
 
 ---
 
-## Observações
+## 💡 Observações Finais
 
-* O projeto já contém o **MySQL Connector**, então o Spring Boot consegue conectar automaticamente.
-* A aplicação é empacotada como **fat jar**, então todas as dependências já estão incluídas no container.
+* O **Spring Boot** utiliza o conector **MySQL JDBC** já configurado no projeto.
+* O build gera um **fat jar**, incluindo todas as dependências no container.
+* Ideal para **ambientes de desenvolvimento** e **testes rápidos** sem instalação local.
+
+---
+
