@@ -5,7 +5,6 @@ import com.gerencia_restaurante.application.port.in.AtualizarProduto;
 import com.gerencia_restaurante.application.port.in.CadastrarProduto;
 import jakarta.persistence.*;
 import lombok.*;
-import java.math.BigDecimal;
 
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity

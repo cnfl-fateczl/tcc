@@ -3,8 +3,6 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-import java.math.BigDecimal;
-
 public record CadastrarProduto (
     @NotBlank(message = "O nome do produto é obrigatório")
     String nome,
