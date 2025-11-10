@@ -1,10 +1,14 @@
 package com.gerencia_restaurante.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.gerencia_restaurante.application.port.in.AtualizarProduto;
 import com.gerencia_restaurante.application.port.in.CadastrarProduto;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
@@ -13,6 +17,7 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @EqualsAndHashCode(of = "id")
 public class Produto {
     @Id
@@ -23,6 +28,10 @@ public class Produto {
     private String categoria;
     private String descricao;
     private Double precoProduto;
+
+    @ManyToMany(mappedBy = "produtos")
+    @JsonIgnore
+    private Set<Cardapio> cardapios = new HashSet<>();
 
     public Produto(CadastrarProduto dados){
         this.nome = dados.nome();

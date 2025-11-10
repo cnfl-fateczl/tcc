@@ -21,13 +21,19 @@ public class CardapioController {
     @Autowired
     private CardapioService cardapioService;
 
-    @GetMapping
+    @GetMapping("/filtrar")
     public List<Cardapio> listarComFiltros(
             @RequestParam(required = false) String nome,
             @RequestParam(required = false) String descricao,
             @RequestParam(required = false) Boolean statusDisponivel
     ){
         return cardapioService.filtrar(nome, descricao, statusDisponivel);
+    }
+
+
+    @GetMapping
+    public List<Cardapio> listar(){
+        return cardapioService.procuraTodos();
     }
 
     @GetMapping("/{id}")
@@ -49,8 +55,8 @@ public class CardapioController {
 
     @PutMapping("/{id}")
     @Transactional
-    public void atualizarCardapio(@RequestBody @Valid AtualizarCardapio novoCardapio, @PathVariable Long id) {
-       cardapioService.atualizar(novoCardapio, id);
+    public void atualizarCardapio(@RequestBody @Valid AtualizarCardapio dto, @PathVariable Long id) {
+       cardapioService.atualizar(dto, id);
     }
 }
 

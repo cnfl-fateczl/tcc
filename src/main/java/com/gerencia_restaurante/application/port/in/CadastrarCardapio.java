@@ -1,9 +1,7 @@
 package com.gerencia_restaurante.application.port.in;
-
 import com.gerencia_restaurante.domain.entity.Produto;
 import jakarta.validation.constraints.NotBlank;
-
-import java.util.List;
+import java.util.Set;
 
 public record CadastrarCardapio(
         @NotBlank(message = "Nome para cardápio é obrigatório")
@@ -14,5 +12,5 @@ public record CadastrarCardapio(
 
         Boolean statusDisponivel,
 
-        List<Produto> produtos
+        Set<Long> produtosIds
 ) {}
