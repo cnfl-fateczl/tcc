@@ -80,6 +80,7 @@ public class PedidoComandaService
         return resumos;
     }
 
+    @Transactional
     public void apagarPorId(Long id)
     {
         pedidoComandaRepository.deleteById(id);
@@ -101,6 +102,7 @@ public class PedidoComandaService
         return pedidoComandaMapper.toPedidoComandaItens(pedido);
     }
 
+    @Transactional
     public ItemPedidoSaida adicionarItem(Long id, CadastrarItemPedido dto)
     {
         PedidoComanda pedido = pedidoComandaRepository.findById(id).orElse(null);        
@@ -116,6 +118,7 @@ public class PedidoComandaService
         return itemPedidoMapper.toItemPedidoSaida(item);
     }
 
+    @Transactional
     public void removerItem(Long id, Integer numeroItem)
     {
         PedidoComanda pedido = pedidoComandaRepository.findById(id).orElse(null);
