@@ -4,5 +4,6 @@ import java.util.List;
 
 public record CadastrarPedidoComanda
 (
+    Integer mesa,    
     List<CadastrarItemPedido> itens
 ) {}

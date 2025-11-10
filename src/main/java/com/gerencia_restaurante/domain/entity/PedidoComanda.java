@@ -1,5 +1,6 @@
 package com.gerencia_restaurante.domain.entity;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,6 +32,9 @@ public class PedidoComanda
     @Column(name="pedido_id")
     private Long id;
 
+    private LocalDate data;
+    private Integer mesa;
+
     @OneToMany(mappedBy="pedido", cascade=CascadeType.ALL, orphanRemoval=true)
     private List<ItemPedido> itens = new ArrayList<>();
 
@@ -44,7 +48,8 @@ public class PedidoComanda
             item.setId(id);
         }
         item.getId().setPedidoId(this.id);
-        item.getId().setNumeroItem(this.itens.size() + 1);
+        Integer numeroItem = itens.stream().mapToInt(it -> it.getId().getNumeroItem()).max().orElse(0) + 1;
+        item.getId().setNumeroItem(numeroItem);
         itens.add(item);
     }
 }
