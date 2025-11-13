@@ -18,10 +18,12 @@ public interface ProdutoMapper {
 
     // Converte DTO para Entity (criação nova)
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "cardapios", ignore = true)
     Produto toProdutoFromCadastrarProduto(CadastrarProduto cadastrarProduto);
 
     // Atualiza Entity existente com dados do DTO
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "cardapios", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateProdutoFromDto(AtualizarProduto atualizarProduto, @MappingTarget Produto produto);
 }

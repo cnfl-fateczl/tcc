@@ -1,5 +1,4 @@
 package com.gerencia_restaurante.application.port.in;
-import com.gerencia_restaurante.domain.entity.Produto;
 import jakarta.validation.constraints.NotBlank;
 import java.util.Set;
 

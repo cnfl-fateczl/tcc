@@ -55,9 +55,9 @@ public class CardapioService {
         List<Predicate<Cardapio>> filtros = new ArrayList<>();
 
         if (nome != null)
-            filtros.add((cardapio -> cardapio.getNome().contains(nome.toLowerCase())));
+            filtros.add((cardapio -> cardapio.getNome().toLowerCase().contains(nome.toLowerCase())));
         if (descricao != null)
-            filtros.add((cardapio -> cardapio.getDescricao().contains(descricao.toLowerCase())));
+            filtros.add((cardapio -> cardapio.getDescricao().toLowerCase().contains(descricao.toLowerCase())));
         if (statusDisponivel != null)
             filtros.add((cardapio -> cardapio.getStatusDisponivel() == statusDisponivel));
         Predicate<Cardapio> filtro = filtros.stream().reduce(Predicate::and).orElse(cardapio -> true);

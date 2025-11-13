@@ -30,6 +30,7 @@ public class Produto {
     private Double precoProduto;
 
     @ManyToMany(mappedBy = "produtos")
+    @Builder.Default
     @JsonIgnore
     private Set<Cardapio> cardapios = new HashSet<>();
 

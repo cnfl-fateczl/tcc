@@ -2,14 +2,10 @@ package com.gerencia_restaurante.domain.entity;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.gerencia_restaurante.application.port.in.AtualizarCardapio;
-import com.gerencia_restaurante.application.port.in.AtualizarProduto;
-import com.gerencia_restaurante.application.port.in.CadastrarCardapio;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})

@@ -1,7 +1,6 @@
 package com.gerencia_restaurante.adapters.web;
 
 import com.gerencia_restaurante.application.port.in.AtualizarCardapio;
-import com.gerencia_restaurante.application.port.in.AtualizarProduto;
 import com.gerencia_restaurante.application.port.in.CadastrarCardapio;
 import com.gerencia_restaurante.application.service.CardapioService;
 import com.gerencia_restaurante.domain.entity.Cardapio;
