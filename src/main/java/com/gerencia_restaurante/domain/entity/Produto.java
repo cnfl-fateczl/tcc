@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.gerencia_restaurante.application.port.in.AtualizarProduto;
 import com.gerencia_restaurante.application.port.in.CadastrarProduto;
+import com.gerencia_restaurante.domain.delivery.DeliveryItem;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,24 +29,15 @@ public class Produto {
     private String categoria;
     private String descricao;
     private Double precoProduto;
+    @Column(name = "codigo_ifood")
+    private String codigoIfood;
 
     @ManyToMany(mappedBy = "produtos")
     @Builder.Default
     @JsonIgnore
     private Set<Cardapio> cardapios = new HashSet<>();
 
-    public Produto(CadastrarProduto dados){
-        this.nome = dados.nome();
-        this.categoria = dados.categoria();
-        this.descricao = dados.descricao();
-        this.precoProduto = dados.precoProduto();
-    }
-
-    public Produto(AtualizarProduto dados){
-        this.nome = dados.nome();
-        this.categoria = dados.categoria();
-        this.descricao = dados.descricao();
-        this.precoProduto = dados.precoProduto();
-    }
-
+    @OneToMany(mappedBy = "produto")
+    @JsonIgnore
+    private Set<DeliveryItem> deliveryItems = new HashSet<>();
 }
