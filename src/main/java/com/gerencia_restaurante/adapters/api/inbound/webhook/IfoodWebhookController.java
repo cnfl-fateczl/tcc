@@ -16,70 +16,65 @@ import java.util.Map;
 public class IfoodWebhookController {
 
     private final DeliveryWebhookProcessor processor;
-    private final ObjectMapper objectMapper;
     private final IfoodOrderClient ifoodOrderClient;
+    private final ObjectMapper objectMapper;
 
     @PostMapping
     public ResponseEntity<Void> receiveWebhook(
             @RequestBody Map<String, Object> rawBody,
-            @RequestHeader(value = "X-Ifood-Request-Id", required = false) String requestId) {
+            @RequestHeader(value = "X-Ifood-Request-Id", required = false) String requestId
+    ) {
 
         try {
-            // 1) KEEPALIVE
-            if ("KEEPALIVE".equals(rawBody.get("code"))) {
-                System.out.println("➡ KEEPALIVE recebido");
+            String fullCode = (String) rawBody.get("fullCode");
+            String code = (String) rawBody.get("code"); // PLC, CFM, CAN, etc
+
+            // 🔹 Normalizar código (fullCode sempre preferido)
+            String event = fullCode != null ? fullCode : code;
+
+            // 1) KEEPALIVE – ignorar
+            if ("KEEPALIVE".equals(event) || "KPL".equals(code)) {
+                System.out.println("KEEPALIVE recebido.");
                 return ResponseEntity.ok().build();
             }
 
-            // 2) PLACED (ou PLC)
-            String code = rawBody.get("code") != null ? rawBody.get("code").toString() : null;
-            String fullCode = rawBody.get("fullCode") != null ? rawBody.get("fullCode").toString() : null;
-
-            boolean isPlaced = "PLACED".equalsIgnoreCase(fullCode) || "PLC".equalsIgnoreCase(code);
-
-            if (isPlaced) {
+            // 2) PLACED – fluxo completo (ACK → GET → SAVE)
+            if ("PLACED".equals(event)) {
 
                 String orderId = (String) rawBody.get("orderId");
 
-                if (orderId == null) {
-                    System.out.println("Recebido PLACED, mas sem orderId!");
-                    return ResponseEntity.badRequest().build();
-                }
+                System.out.println("Evento PLACED recebido para pedido " + orderId);
 
-                System.out.println("Evento PLACED recebido. Buscando pedido completo no iFood… id=" + orderId);
+                // 2.1) ACK IMEDIATO
+                System.out.println("Enviando ACK...");
+                ifoodOrderClient.acknowledgeOrder(orderId);
+                System.out.println("ACK enviado.");
 
-                // 3) Tentativa de busca do pedido completo com retry e fallback
-                IfoodOrderDetailsDto dto = null;
-
-                try {
-                    dto = ifoodOrderClient.getOrder(orderId);
-
-                } catch (Exception e) {
-                    System.out.println("Não foi possível buscar o pedido (possível 404 do simulador)");
-                }
+                // 2.2) Buscar detalhes do pedido
+                System.out.println("Buscando detalhes...");
+                IfoodOrderDetailsDto dto = ifoodOrderClient.getOrder(orderId);
 
                 if (dto == null) {
-                    System.out.println("Ifood não disponibilizou o pedido completo ainda. Ignorando PLACED.");
-                    return ResponseEntity.ok().build(); // nunca retorna erro ao iFood
+                    System.err.println("Pedido não encontrado no GET. Pode ter sido cancelado antes.");
+                    return ResponseEntity.ok().build();
                 }
 
-                // 4) Agora sim, processa
+                // 2.3) Processar e salvar
                 processor.processWebhookEvent(dto, requestId);
+                System.out.println("Pedido salvo com sucesso.");
+
                 return ResponseEntity.ok().build();
             }
 
-            // 5) Caso raro: payload completo
-            try {
-                IfoodOrderDetailsDto dto = objectMapper.convertValue(rawBody, IfoodOrderDetailsDto.class);
-                processor.processWebhookEvent(dto, requestId);
-                return ResponseEntity.ok().build();
-            } catch (Exception ignored) {
-                System.out.println("Payload não era um pedido completo. Evento ignorado.");
-                return ResponseEntity.ok().build();
-            }
+            // 3) QUALQUER OUTRO EVENTO – status update
+            System.out.println("Evento recebido: " + event);
+            processor.processStatusEvent(rawBody);
+
+            return ResponseEntity.ok().build();
 
         } catch (Exception e) {
             e.printStackTrace();
+            System.err.println("Erro ao processar webhook iFood: " + e.getMessage());
             return ResponseEntity.status(500).build();
         }
     }

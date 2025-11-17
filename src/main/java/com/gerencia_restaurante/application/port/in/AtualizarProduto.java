@@ -8,5 +8,6 @@ public record AtualizarProduto(
         String categoria,
         String descricao,
         @DecimalMin(value = "0.01", message = "Preço não pode ser zerado")
-        Double precoProduto
+        Double precoProduto,
+        String codigoIfood
 ) {}
