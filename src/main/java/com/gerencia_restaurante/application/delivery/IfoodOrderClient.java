@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class IfoodOrderClient {
 
-    @Value("${ifood.base-url}")
+    @Value("${ifood.base-url}/order")
     private String baseUrl;
 
     private final IfoodAuthService authService;
@@ -33,7 +33,7 @@ public class IfoodOrderClient {
                     .onStatus(
                             status -> status.isSameCodeAs(HttpStatusCode.valueOf(404)),
                             response -> {
-                                System.out.println("⚠ Pedido não encontrado no iFood: " + orderId);
+                                System.out.println("Pedido não encontrado no iFood: " + orderId);
                                 return Mono.empty(); // NÃO quebra
                             }
                     )
@@ -55,7 +55,7 @@ public class IfoodOrderClient {
         String token = authService.getAccessToken();
 
         webClient.post()
-                .uri(baseUrl + "/v1.0/orders/" + orderId + "/acknowledgment")
+                .uri(baseUrl + "/v1.0/orders/" + orderId)
                 .header("Authorization", "Bearer " + token)
                 .retrieve()
                 .toBodilessEntity()
