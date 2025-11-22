@@ -9,12 +9,16 @@ import com.gerencia_restaurante.domain.delivery.DeliveryStatusHistory;
 import com.gerencia_restaurante.domain.delivery.enums.DeliveryOrderStatus;
 import com.gerencia_restaurante.domain.repository.ProdutoRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.Map;
 
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DeliveryWebhookProcessor {
@@ -48,8 +52,11 @@ public class DeliveryWebhookProcessor {
                         .ifPresent(item::setProduto)
         );
 
+        log.info("Passei aquiiii 3- vincular produto em deliverywebhookprocessor");
+
         // 4) Relacionamento bidirecional
         order.getItems().forEach(i -> i.setOrder(order));
+        log.info("order: {}", order);
 
         // 5) Status inicial RECEIVED
         addStatus(order, DeliveryOrderStatus.RECEIVED);
@@ -59,7 +66,7 @@ public class DeliveryWebhookProcessor {
 
         // 7) Enviar ACK imediato ao iFood
         try {
-            ifoodOrderClient.acknowledgeOrder(orderId);
+            ifoodOrderClient.acknowledgeEvent(orderId);
         } catch (Exception e) {
             throw new RuntimeException("Erro ao enviar ACK ao iFood: " + e.getMessage(), e);
         }
@@ -86,7 +93,7 @@ public class DeliveryWebhookProcessor {
 
         DeliveryOrder order = orderRepository.findById(orderId).orElse(null);
         if (order == null) {
-            System.out.println("⚠ Pedido não encontrado no banco. Ignorando.");
+            System.out.println("Pedido não encontrado no banco. Ignorando.");
             return;
         }
 
@@ -100,7 +107,7 @@ public class DeliveryWebhookProcessor {
 
         // Atualizar status
         order.setStatus(newStatus);
-        addStatus(order, newStatus);
+       // addStatus(order, newStatus);
 
         orderRepository.save(order);
 
@@ -115,6 +122,9 @@ public class DeliveryWebhookProcessor {
                 .order(order)
                 .build();
 
+        if (order.getStatusHistory() == null){
+            order.setStatusHistory(new ArrayList<>());
+        }
         order.getStatusHistory().add(hist);
     }
 }

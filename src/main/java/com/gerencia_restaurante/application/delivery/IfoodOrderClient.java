@@ -2,6 +2,7 @@ package com.gerencia_restaurante.application.delivery;
 
 import com.gerencia_restaurante.adapters.api.outbound.ifood.dto.IfoodOrderDetailsDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
@@ -10,11 +11,15 @@ import org.springframework.web.reactive.function.client.WebClient;
 import io.github.resilience4j.retry.annotation.Retry;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+import java.util.Map;
+
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class IfoodOrderClient {
 
-    @Value("${ifood.base-url}/order")
+    @Value("${ifood.base-url}")
     private String baseUrl;
 
     private final IfoodAuthService authService;
@@ -27,7 +32,7 @@ public class IfoodOrderClient {
         try {
 
             return webClient.get()
-                    .uri(baseUrl + "/v1.0/orders/" + orderId)
+                    .uri(baseUrl + "/order/v1.0/orders/" + orderId)
                     .header("Authorization", "Bearer " + authService.getAccessToken())
                     .retrieve()
                     .onStatus(
@@ -47,19 +52,44 @@ public class IfoodOrderClient {
 
 
     /**
-     * ACKNOWLEDGE — Confirma imediatamente o recebimento do pedido PLACED
+     * ACKNOWLEDGE — Confirma o recebimento do EVENTO (não do pedido!)
+     * Necessário enviar o eventId
      */
     @Retry(name = "ifoodConfirm", fallbackMethod = "confirmFallback")
-    public void acknowledgeOrder(String orderId) {
+    public void acknowledgeEvent(String eventId) {
 
         String token = authService.getAccessToken();
 
-        webClient.post()
-                .uri(baseUrl + "/v1.0/orders/" + orderId)
-                .header("Authorization", "Bearer " + token)
-                .retrieve()
-                .toBodilessEntity()
-                .block();
+        WebClient client = webClient.mutate()
+                .baseUrl(baseUrl)
+                .build();
+
+        // Body correto exigido pelo iFood:
+        List<String> eventIds = List.of(eventId);
+        List<Map<String, String>> body =
+                eventIds.stream()
+                                .map(id -> Map.of("id", id))
+                                        .toList();
+
+        log.info("Body enviado em ACK: {}", body);
+
+
+        try {
+            client.post()
+                    .uri("/order/v1.0/events/acknowledgment")
+                    .header("Authorization", "Bearer " + token)
+                    .header("Content-Type", "application/json")
+                    .bodyValue(body)
+                    .retrieve()
+                    .toBodilessEntity()
+                    .block();
+
+            log.info("ACK enviado com sucesso para eventId {}", eventId);
+
+        } catch (Exception e) {
+            log.error("Falha ao enviar ACK para eventId {}: {}", eventId, e.getMessage());
+            throw e;
+        }
     }
 
     /**

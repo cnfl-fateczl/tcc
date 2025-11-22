@@ -5,11 +5,13 @@ import com.gerencia_restaurante.adapters.api.outbound.ifood.dto.IfoodOrderDetail
 import com.gerencia_restaurante.application.delivery.DeliveryWebhookProcessor;
 import com.gerencia_restaurante.application.delivery.IfoodOrderClient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/webhooks/ifood")
 @RequiredArgsConstructor
@@ -27,6 +29,8 @@ public class IfoodWebhookController {
 
         try {
             String fullCode = (String) rawBody.get("fullCode");
+            log.info("rawBody: {}", rawBody);
+
             String code = (String) rawBody.get("code"); // PLC, CFM, CAN, etc
 
             // 🔹 Normalizar código (fullCode sempre preferido)
@@ -47,7 +51,7 @@ public class IfoodWebhookController {
 
                 // 2.1) ACK IMEDIATO
                 System.out.println("Enviando ACK...");
-                ifoodOrderClient.acknowledgeOrder(orderId);
+                ifoodOrderClient.acknowledgeEvent(orderId);
                 System.out.println("ACK enviado.");
 
                 // 2.2) Buscar detalhes do pedido
