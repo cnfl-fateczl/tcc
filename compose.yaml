@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+
   mysql:
     image: mysql:8.4
     container_name: mysql_gerencia
@@ -8,12 +9,18 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: 123456
       MYSQL_DATABASE: gerencia_restaurante
+      MYSQL_TCP_PORT: 3306
     ports:
-      - "3308:3306"
+      - "3308:3306"  # 3308 -> externo, 3306 -> interno
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
       - gerencia-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   app:
     build: .
@@ -21,7 +28,8 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql_gerencia:3306/gerencia_restaurante?createDatabaseIfNotExist=true&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: root
@@ -35,4 +43,3 @@ volumes:
 networks:
   gerencia-network:
     driver: bridge
-
