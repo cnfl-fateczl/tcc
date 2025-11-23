@@ -1,0 +1,2 @@
+ALTER TABLE delivery_orders
+    MODIFY COLUMN status VARCHAR(50) NOT NULL;

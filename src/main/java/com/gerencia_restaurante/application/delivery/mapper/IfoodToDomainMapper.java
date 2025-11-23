@@ -1,17 +1,17 @@
 package com.gerencia_restaurante.application.delivery.mapper;
-import com.gerencia_restaurante.adapters.api.outbound.ifood.dto.IfoodOrderDetailsDto;
-import com.gerencia_restaurante.domain.delivery.DeliveryAddress;
-import com.gerencia_restaurante.domain.delivery.DeliveryCustomer;
-import com.gerencia_restaurante.domain.delivery.DeliveryItem;
-import com.gerencia_restaurante.domain.delivery.DeliveryOrder;
-import com.gerencia_restaurante.domain.delivery.enums.DeliveryOrderStatus;
 
-import java.time.OffsetDateTime;
+import com.gerencia_restaurante.adapters.api.outbound.ifood.dto.IfoodOrderDetailsDto;
+import com.gerencia_restaurante.domain.delivery.*;
+import com.gerencia_restaurante.domain.delivery.enums.DeliveryOrderStatus;
+import org.springframework.stereotype.Component;
+
 import java.util.stream.Collectors;
 
+@Component
 public class IfoodToDomainMapper {
 
-    public static DeliveryOrder toDeliveryOrder(IfoodOrderDetailsDto dto) {
+    public DeliveryOrder toDomain(IfoodOrderDetailsDto dto) {
+
         DeliveryOrder.DeliveryOrderBuilder builder = DeliveryOrder.builder();
 
         builder.id(dto.getId());
@@ -22,21 +22,26 @@ public class IfoodToDomainMapper {
         builder.testOrder(dto.isTest());
         builder.createdAt(dto.getCreatedAt());
         builder.preparationStartTime(dto.getPreparationStartDateTime());
-        // map customer
+
+        // customer
         if (dto.getCustomer() != null) {
-            DeliveryCustomer customer = DeliveryCustomer.builder()
+            var c = DeliveryCustomer.builder()
                     .customerId(dto.getCustomer().getId())
                     .name(dto.getCustomer().getName())
                     .documentNumber(dto.getCustomer().getDocumentNumber())
-                    .phoneNumber(dto.getCustomer().getPhone() == null ? null : dto.getCustomer().getPhone().getNumber())
+                    .phoneNumber(
+                            dto.getCustomer().getPhone() == null
+                                    ? null
+                                    : dto.getCustomer().getPhone().getNumber()
+                    )
                     .build();
-            builder.customer(customer);
+            builder.customer(c);
         }
 
-        // map address
+        // address
         if (dto.getDelivery() != null && dto.getDelivery().getDeliveryAddress() != null) {
-            IfoodOrderDetailsDto.DeliveryDto.AddressDto a = dto.getDelivery().getDeliveryAddress();
-            DeliveryAddress addr = DeliveryAddress.builder()
+            var a = dto.getDelivery().getDeliveryAddress();
+            var addr = DeliveryAddress.builder()
                     .streetName(a.getStreetName())
                     .streetNumber(a.getStreetNumber())
                     .neighborhood(a.getNeighborhood())
@@ -54,19 +59,17 @@ public class IfoodToDomainMapper {
 
         // items
         if (dto.getItems() != null) {
-            builder.items(dto.getItems().stream().map(itemDto -> {
-                DeliveryItem item = DeliveryItem.builder()
-                        .externalProductId(itemDto.getExternalCode())
-                        .name(itemDto.getName())
-                        .quantity(itemDto.getQuantity() == null ? 0.0 : itemDto.getQuantity())
-                        .unitPrice(itemDto.getUnitPrice() == null ? 0.0 : itemDto.getUnitPrice())
-                        .totalPrice(itemDto.getTotalPrice() == null ? 0.0 : itemDto.getTotalPrice())
-                        .build();
-                return item;
-            }).collect(Collectors.toList()));
+            builder.items(dto.getItems().stream().map(itemDto -> DeliveryItem.builder()
+                    .externalProductId(itemDto.getExternalCode())
+                    .name(itemDto.getName())
+                    .quantity(itemDto.getQuantity() == null ? 0.0 : itemDto.getQuantity())
+                    .unitPrice(itemDto.getUnitPrice() == null ? 0.0 : itemDto.getUnitPrice())
+                    .totalPrice(itemDto.getTotalPrice() == null ? 0.0 : itemDto.getTotalPrice())
+                    .build()
+            ).collect(Collectors.toList()));
         }
 
-        // default status on create
+        // status inicial
         builder.status(DeliveryOrderStatus.RECEIVED);
 
         return builder.build();

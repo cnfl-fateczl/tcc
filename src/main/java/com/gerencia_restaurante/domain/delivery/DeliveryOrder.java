@@ -1,4 +1,5 @@
 package com.gerencia_restaurante.domain.delivery;
+
 import com.gerencia_restaurante.domain.delivery.enums.DeliveryOrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -14,8 +15,9 @@ import java.util.List;
 @Entity
 @Table(name = "delivery_orders")
 public class DeliveryOrder {
+
     @Id
-    private String id; // mesmo ID do ifood
+    private String id; // mesmo ID do ifood (orderId)
 
     private String displayId;
     private String orderType;
@@ -33,8 +35,17 @@ public class DeliveryOrder {
     private OffsetDateTime createdAt;
     private OffsetDateTime preparationStartTime;
 
+    /**
+     * Status interno normalizado (enum)
+     */
     @Enumerated(EnumType.STRING)
     private DeliveryOrderStatus status;
+
+    /**
+     * Status enviado diretamente pelo iFood (bruto), útil para logs e debugging.
+     */
+    @Column(name = "raw_status")
+    private String rawStatus;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DeliveryItem> items;

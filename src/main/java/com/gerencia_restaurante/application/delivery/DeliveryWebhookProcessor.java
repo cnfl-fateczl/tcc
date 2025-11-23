@@ -1,130 +1,61 @@
 package com.gerencia_restaurante.application.delivery;
 
+import com.gerencia_restaurante.adapters.api.inbound.webhook.dto.EventDto;
 import com.gerencia_restaurante.adapters.api.outbound.ifood.dto.IfoodOrderDetailsDto;
-import com.gerencia_restaurante.adapters.api.outbound.persistence.DeliveryOrderRepository;
-import com.gerencia_restaurante.application.delivery.mapper.IfoodToDomainMapper;
-import com.gerencia_restaurante.application.delivery.IfoodOrderClient;
-import com.gerencia_restaurante.domain.delivery.DeliveryOrder;
-import com.gerencia_restaurante.domain.delivery.DeliveryStatusHistory;
 import com.gerencia_restaurante.domain.delivery.enums.DeliveryOrderStatus;
-import com.gerencia_restaurante.domain.repository.ProdutoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.Map;
-
+import org.springframework.stereotype.Component;
 
 @Slf4j
-@Service
+@Component
 @RequiredArgsConstructor
 public class DeliveryWebhookProcessor {
 
-    private final DeliveryOrderRepository orderRepository;
-    private final ProdutoRepository produtoRepository;
+    private final DeliveryOrderService orderService;
     private final IfoodOrderClient ifoodOrderClient;
 
-
     /**
-     * PROCESSA PEDIDO COMPLETO (DTO) — usado após o GET /orders/{id}
+     * Processa qualquer evento recebido do webhook do iFood.
      */
-    @Transactional
-    public void processWebhookEvent(IfoodOrderDetailsDto dto, String ifoodRequestId) {
+    public void processEvent(EventDto event) {
 
-        String orderId = dto.getId();
+        String rawStatus = event.getFullCode();
+        String orderId = event.getOrderId();
 
-        // 1) Idempotência
-        DeliveryOrder existing = orderRepository.findById(orderId).orElse(null);
-        if (existing != null) {
-            addStatus(existing, existing.getStatus());
+        log.info("[IFOOD] Webhook recebido → orderId={}, status={}", orderId, rawStatus);
+
+        // Normaliza o código do iFood para enum interno
+        DeliveryOrderStatus normalized = DeliveryOrderStatus.fromIfoodCode(rawStatus);
+
+        if (normalized == null) {
+            log.warn("[IFOOD] Status desconhecido recebido: {}", rawStatus);
             return;
         }
 
-        // 2) Converter DTO → Domínio
-        DeliveryOrder order = IfoodToDomainMapper.toDeliveryOrder(dto);
+        // ---------------------------------------------------------
+        // CASO 1 — PLACED → precisa buscar detalhes completos via GET
+        // ---------------------------------------------------------
+        if (normalized == DeliveryOrderStatus.RECEIVED) {
 
-        // 3) Vincular produtos
-        order.getItems().forEach(item ->
-                produtoRepository.findByCodigoIfood(item.getExternalProductId())
-                        .ifPresent(item::setProduto)
-        );
+            log.info("[IFOOD] Status PLACED detectado → Buscando detalhes do pedido...");
 
-        log.info("Passei aquiiii 3- vincular produto em deliverywebhookprocessor");
+            IfoodOrderDetailsDto details = ifoodOrderClient.getOrder(orderId);
 
-        // 4) Relacionamento bidirecional
-        order.getItems().forEach(i -> i.setOrder(order));
-        log.info("order: {}", order);
+            if (details == null) {
+                log.error("[IFOOD] PLACED recebido, mas o GET retornou null. Pedido pode ter sido cancelado antes.");
+                return;
+            }
 
-        // 5) Status inicial RECEIVED
-        addStatus(order, DeliveryOrderStatus.RECEIVED);
-
-        // 6) Salvar pedido
-        orderRepository.save(order);
-
-        // 7) Enviar ACK imediato ao iFood
-        try {
-            ifoodOrderClient.acknowledgeEvent(orderId);
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao enviar ACK ao iFood: " + e.getMessage(), e);
-        }
-
-        // 8) Atualizar status interno para CONFIRMED
-        order.setStatus(DeliveryOrderStatus.CONFIRMED);
-        addStatus(order, DeliveryOrderStatus.CONFIRMED);
-
-        orderRepository.save(order);
-    }
-
-
-    /**
-     * PROCESSA EVENTOS DE STATUS (confirmação, retirada, cancelamento...)
-     * Exemplo: CONFIRMED, CANCELLED, READY_TO_PICKUP, DISPATCHED, CONCLUDED
-     */
-    @Transactional
-    public void processStatusEvent(Map<String, Object> rawEvent) {
-
-        String orderId = (String) rawEvent.get("orderId");
-        String fullCode = (String) rawEvent.get("fullCode");
-
-        System.out.println("Evento de status: " + fullCode + " para pedido " + orderId);
-
-        DeliveryOrder order = orderRepository.findById(orderId).orElse(null);
-        if (order == null) {
-            System.out.println("Pedido não encontrado no banco. Ignorando.");
+            // salvar ou atualizar pedido completo
+            orderService.createOrUpdateFromIfood(details, rawStatus, normalized);
             return;
         }
 
-        // Traduz status recebido
-        DeliveryOrderStatus newStatus = DeliveryOrderStatus.fromIfoodCode(fullCode);
-
-        if (newStatus == null) {
-            System.out.println("Status não reconhecido: " + fullCode);
-            return;
-        }
-
-        // Atualizar status
-        order.setStatus(newStatus);
-       // addStatus(order, newStatus);
-
-        orderRepository.save(order);
-
-        System.out.println("Status atualizado para: " + newStatus);
-    }
-
-
-    private void addStatus(DeliveryOrder order, DeliveryOrderStatus status) {
-        DeliveryStatusHistory hist = DeliveryStatusHistory.builder()
-                .status(status)
-                .changedAt(OffsetDateTime.now())
-                .order(order)
-                .build();
-
-        if (order.getStatusHistory() == null){
-            order.setStatusHistory(new ArrayList<>());
-        }
-        order.getStatusHistory().add(hist);
+        // ---------------------------------------------------------
+        // CASO 2 — QUALQUER OUTRO EVENTO → apenas atualização de status
+        // ---------------------------------------------------------
+        log.info("[IFOOD] Atualizando status do pedido {} para {}", orderId, normalized);
+        orderService.updateStatus(orderId, rawStatus, normalized);
     }
 }
