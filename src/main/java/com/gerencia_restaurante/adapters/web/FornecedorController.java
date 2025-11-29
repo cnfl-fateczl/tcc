@@ -2,6 +2,7 @@ package com.gerencia_restaurante.adapters.web;
 
 import java.util.List;
 
+import com.gerencia_restaurante.application.service.CepLookupService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -28,6 +29,9 @@ public class FornecedorController
 {
     @Autowired
     private FornecedorService fornecedorService;
+
+    @Autowired
+    private CepLookupService cepLookupService;
 
     @GetMapping
     public List<Fornecedor> listarComFiltros(
@@ -75,4 +79,21 @@ public class FornecedorController
     {
         fornecedorService.apagarPorId(id);
     }
+
+    //Consultar Endereço por CEP
+    @GetMapping("/cep/{cep}")
+    public String consultarCep(@PathVariable String cep) {
+        return cepLookupService.montarEndereco(cep);
+    }
+
+    //Atualizar automaticamente o fornecedor pelo CEP
+    @PatchMapping("/{id}/cep/{cep}")
+    public Fornecedor atualizarEnderecoComCep(
+            @PathVariable Long id,
+            @PathVariable String cep) {
+
+        return fornecedorService.atualizarEnderecoPorCep(id, cep);
+    }
+
+
 }

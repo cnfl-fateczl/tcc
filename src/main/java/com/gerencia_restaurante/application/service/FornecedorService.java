@@ -23,6 +23,9 @@ public class FornecedorService
     @Autowired
     private FornecedorMapper fornecedorMapper;
 
+    @Autowired
+    private CepLookupService cepLookupService;
+
     //GET
     public List<Fornecedor> listarComFiltros(String razao, String cnpj, String endereco, String telefone, String email)
     {
@@ -83,4 +86,19 @@ public class FornecedorService
     {
         fornecedorRepository.deleteById(id);
     }
+
+    //PATCH Endereco Fornecedor
+    @Transactional
+    public Fornecedor atualizarEnderecoPorCep(Long id, String cep) {
+        Fornecedor fornecedor = fornecedorRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Fornecedor não encontrado"));
+
+        String endereco = cepLookupService.montarEndereco(cep);
+
+        fornecedor.setEndereco(endereco);
+
+        return fornecedorRepository.save(fornecedor);
+    }
+
+
 }
