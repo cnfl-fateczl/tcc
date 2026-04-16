@@ -40,4 +40,12 @@ public class Produto {
     @OneToMany(mappedBy = "produto")
     @JsonIgnore
     private Set<DeliveryItem> deliveryItems = new HashSet<>();
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "produto_ingrediente",
+        joinColumns = @JoinColumn(name = "produto_id"),
+        inverseJoinColumns = @JoinColumn(name = "item_de_estoque_id")
+    )
+    private Set<ItemdeEstoque> ingredientes = new HashSet<>();
 }
