@@ -1,4 +1,6 @@
 package com.gerencia_restaurante.application.port.in;
+import java.util.Set;
+
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -17,5 +19,7 @@ public record CadastrarProduto (
     @DecimalMin(value = "0.01", message = "Preço não pode ser zerado")
     Double precoProduto,
     
-    String codigoIfood
+    String codigoIfood,
+
+    Set<Long> ingredientes
     ){}

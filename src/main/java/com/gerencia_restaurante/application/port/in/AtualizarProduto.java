@@ -1,5 +1,7 @@
 package com.gerencia_restaurante.application.port.in;
 
+import java.util.Set;
+
 import jakarta.validation.constraints.DecimalMin;
 
 public record AtualizarProduto(
@@ -9,5 +11,6 @@ public record AtualizarProduto(
         String descricao,
         @DecimalMin(value = "0.01", message = "Preço não pode ser zerado")
         Double precoProduto,
-        String codigoIfood
+        String codigoIfood,
+        Set<Long> ingredientes
 ) {}
