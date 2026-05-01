@@ -34,7 +34,8 @@ public class ItemdeEstoque
     @Column(name = "item_de_estoque_id")
     private Long id;
     private String nome;
-    private Integer unidade;
+    private String unidade;
+    private Integer quantidade;
 
     @ManyToMany(mappedBy = "ingredientes")
     @Builder.Default

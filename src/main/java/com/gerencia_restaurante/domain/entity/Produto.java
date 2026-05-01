@@ -2,8 +2,6 @@ package com.gerencia_restaurante.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.gerencia_restaurante.application.port.in.AtualizarProduto;
-import com.gerencia_restaurante.application.port.in.CadastrarProduto;
 import com.gerencia_restaurante.domain.delivery.DeliveryItem;
 import jakarta.persistence.*;
 import lombok.*;

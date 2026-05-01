@@ -9,6 +9,10 @@ public interface ItemdeEstoqueMapper {
 
     //DTO para Entity
     @Mapping(target = "id", ignore = true)
-    ItemdeEstoque toEntityfromCadastrar(CadastrarItemdeEstoque cadastrarItemdeEstoque);
+    ItemdeEstoque toEntityFromCadastrar(CadastrarItemdeEstoque cadastrarItemdeEstoque);
 
+    //DTO para Entity com Patch
+    @Mapping(target="id", ignore=true)
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updateEntityFromCadastrar(CadastrarItemdeEstoque dto, @MappingTarget ItemdeEstoque itemdeEstoque);
 }
