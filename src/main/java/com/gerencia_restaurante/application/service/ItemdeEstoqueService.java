@@ -49,7 +49,7 @@ public class ItemdeEstoqueService {
 
     //PUT
     @Transactional
-    public ItemdeEstoque atualizarFornecedorTotal(CadastrarItemdeEstoque dto, Long id)
+    public ItemdeEstoque atualizarItemdeEstoqueTotal(CadastrarItemdeEstoque dto, Long id)
     {
         ItemdeEstoque existente = itemRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Item não encontrado com o Id: " + id));
