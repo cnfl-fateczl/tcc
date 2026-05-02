@@ -1,14 +1,9 @@
 package com.gerencia_restaurante.application.mapper;
 
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
-
 import com.gerencia_restaurante.application.port.in.AtualizarProduto;
 import com.gerencia_restaurante.application.port.in.CadastrarProduto;
 import com.gerencia_restaurante.domain.entity.Produto;
+import org.mapstruct.*;
 
 @Mapper(componentModel = "spring")
 public interface ProdutoMapper {

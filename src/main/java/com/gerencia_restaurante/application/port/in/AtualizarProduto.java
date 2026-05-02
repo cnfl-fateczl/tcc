@@ -12,5 +12,5 @@ public record AtualizarProduto(
         @DecimalMin(value = "0.01", message = "Preço não pode ser zerado")
         Double precoProduto,
         String codigoIfood,
-        Set<Long> ingredientes
+        Set<Long> ingredientesIds
 ) {}
