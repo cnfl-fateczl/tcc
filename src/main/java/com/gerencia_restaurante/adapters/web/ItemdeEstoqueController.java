@@ -12,13 +12,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gerencia_restaurante.application.port.in.CadastrarItemdeEstoque;
 import com.gerencia_restaurante.application.service.ItemdeEstoqueService;
 import com.gerencia_restaurante.domain.entity.ItemdeEstoque;
 
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 
 @RestController
@@ -35,36 +35,32 @@ public class ItemdeEstoqueController {
     }
 
     @GetMapping("/{id}")
-    public ItemdeEstoque listarUmItem(@PathVariable Long id){
+    public ItemdeEstoque listarPorId(@PathVariable Long id){
         return itemService.buscarPorId(id);
     }
 
-    @GetMapping("/{nome}")
-    public List<ItemdeEstoque> listarPorNome(@PathVariable String nome){
+    @GetMapping // Usar query param EX: (?nome=arroz)
+    public List<ItemdeEstoque> listarPorNome(@RequestParam(required=false) String nome){
         return itemService.buscaPorNome(nome);
     }
 
     @PostMapping
-    @Transactional
     public void cadastrarItemdeEstoque(@RequestBody @Valid CadastrarItemdeEstoque novoItemdeEstoque){
         itemService.cadastrarItemdeEstoque(novoItemdeEstoque);
     }
 
     @DeleteMapping("/{id}")
-    @Transactional
     public void excluirItemdeEstoque(@PathVariable Long id){
         itemService.apagarPorId(id);
     }
 
     @PutMapping("/{id}")
-    @Transactional
     public void atualizaItemdeEstoqueTotal(@RequestBody @Valid CadastrarItemdeEstoque dto, @PathVariable Long id){
         itemService.atualizarItemdeEstoqueTotal(dto, id);
     }
 
     @PatchMapping("/{id}")
-    @Transactional
-    public void atualizaItemdeEstoqueParcial(@RequestBody @Valid CadastrarItemdeEstoque dto, @PathVariable Long id){
+    public void atualizaItemdeEstoqueParcial(CadastrarItemdeEstoque dto, @PathVariable Long id){
         itemService.atualizarItemdeEstoqueParcial(dto, id);
     }
 

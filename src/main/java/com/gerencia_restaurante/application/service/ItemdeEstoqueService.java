@@ -1,7 +1,6 @@
 package com.gerencia_restaurante.application.service;
 
 import java.util.List;
-import java.util.function.Predicate;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -51,10 +50,11 @@ public class ItemdeEstoqueService {
     @Transactional
     public ItemdeEstoque atualizarItemdeEstoqueTotal(CadastrarItemdeEstoque dto, Long id)
     {
-        ItemdeEstoque existente = itemRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException("Item não encontrado com o Id: " + id));
-        ItemdeEstoque atualizado = itemMapper.toEntityFromCadastrar(dto);
-        atualizado.setId(id);
+        if (!itemRepository.existsById(id)){
+            throw new EntityNotFoundException("Item não existe com o ID: " + id);
+        }
+        ItemdeEstoque existente = itemMapper.toEntityFromCadastrar(dto);
+        existente.setId(id);
         return itemRepository.save(existente);
     }
 
@@ -72,6 +72,9 @@ public class ItemdeEstoqueService {
     @Transactional
     public void apagarPorId(Long id)
     {
+        if (!itemRepository.existsById(id)){
+            throw new EntityNotFoundException("ID não existe");
+        }
         itemRepository.deleteById(id);
     }
 
