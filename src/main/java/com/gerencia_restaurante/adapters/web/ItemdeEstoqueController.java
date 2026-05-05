@@ -30,18 +30,13 @@ public class ItemdeEstoqueController {
     private ItemdeEstoqueService itemService;
 
     @GetMapping
-    public List<ItemdeEstoque> listar() {
-        return itemService.buscaTodos();
+    public List<ItemdeEstoque> listarComFiltros(@RequestParam(required=false) String nome) {
+        return itemService.filtrar(nome);
     }
 
     @GetMapping("/{id}")
     public ItemdeEstoque listarPorId(@PathVariable Long id){
         return itemService.buscarPorId(id);
-    }
-
-    @GetMapping // Usar query param EX: (?nome=arroz)
-    public List<ItemdeEstoque> listarPorNome(@RequestParam(required=false) String nome){
-        return itemService.buscaPorNome(nome);
     }
 
     @PostMapping

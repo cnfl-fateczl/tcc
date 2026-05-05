@@ -1,6 +1,8 @@
 package com.gerencia_restaurante.application.service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,8 +31,15 @@ public class ItemdeEstoqueService {
     }
 
     //GET por nome
-    public List<ItemdeEstoque> buscaPorNome(String nome) {
-        return itemRepository.findByNome(nome);
+    public List<ItemdeEstoque> filtrar(String nome)
+    {
+        List<Predicate<ItemdeEstoque>> filtros = new ArrayList<>();
+
+        if (nome != null)
+            filtros.add(p -> p.getNome().toLowerCase().contains(nome.toLowerCase()));     
+        Predicate<ItemdeEstoque> filtro = filtros.stream().reduce((p1, p2) -> p1.and(p2)).orElse(p -> true);
+        
+        return itemRepository.findAll().stream().filter(filtro).toList();
     }
 
     //GET all

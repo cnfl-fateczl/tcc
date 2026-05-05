@@ -1,8 +1,10 @@
 package com.gerencia_restaurante.application.service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +13,9 @@ import org.springframework.stereotype.Service;
 import com.gerencia_restaurante.application.mapper.ProdutoMapper;
 import com.gerencia_restaurante.application.port.in.AtualizarProduto;
 import com.gerencia_restaurante.application.port.in.CadastrarProduto;
+import com.gerencia_restaurante.domain.entity.ItemdeEstoque;
 import com.gerencia_restaurante.domain.entity.Produto;
+import com.gerencia_restaurante.domain.repository.ItemdeEstoqueRepository;
 import com.gerencia_restaurante.domain.repository.ProdutoRepository;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -26,6 +30,9 @@ public class ProdutoService {
     @Autowired
     private ProdutoMapper produtoMapper;
 
+    @Autowired
+    private ItemdeEstoqueRepository itemdeEstoqueRepository;
+
     @Transactional
     public Produto atualizar(AtualizarProduto dto, Long id){
         Produto existente = produtoRepository.findById(id)
@@ -37,6 +44,10 @@ public class ProdutoService {
     @Transactional
     public Produto salvar(CadastrarProduto dto){
         Produto novo = produtoMapper.toProdutoFromCadastrarProduto(dto);
+        if (dto.ingredientesIds() != null && !dto.ingredientesIds().isEmpty()) {
+            Set<ItemdeEstoque> ingredientes = new HashSet<>(itemdeEstoqueRepository.findAllById(dto.ingredientesIds()));
+            novo.setIngredientes(ingredientes);
+        }
         return produtoRepository.save(novo);
     }
 
