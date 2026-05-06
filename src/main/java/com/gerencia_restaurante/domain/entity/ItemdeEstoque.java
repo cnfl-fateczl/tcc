@@ -13,11 +13,6 @@ import lombok.Setter;
 import lombok.Builder;
 import jakarta.persistence.Table;
 import jakarta.persistence.Column;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Table(name="item_de_estoque")
@@ -36,9 +31,4 @@ public class ItemdeEstoque
     private String nome;
     private String unidade;
     private Integer quantidade;
-
-    @ManyToMany(mappedBy = "ingredientes")
-    @Builder.Default
-    @JsonIgnore
-    private Set<Produto> produtos = new HashSet<>();
 }

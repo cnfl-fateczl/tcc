@@ -1,11 +1,11 @@
 package com.gerencia_restaurante.application.service;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,6 +13,9 @@ import org.springframework.stereotype.Service;
 import com.gerencia_restaurante.application.mapper.ProdutoMapper;
 import com.gerencia_restaurante.application.port.in.AtualizarProduto;
 import com.gerencia_restaurante.application.port.in.CadastrarProduto;
+import com.gerencia_restaurante.application.port.out.ProdutoSaida;
+import com.gerencia_restaurante.domain.entity.Ingrediente;
+import com.gerencia_restaurante.domain.entity.IngredienteId;
 import com.gerencia_restaurante.domain.entity.ItemdeEstoque;
 import com.gerencia_restaurante.domain.entity.Produto;
 import com.gerencia_restaurante.domain.repository.ItemdeEstoqueRepository;
@@ -42,13 +45,30 @@ public class ProdutoService {
     }
 
     @Transactional
-    public Produto salvar(CadastrarProduto dto){
+    public Produto salvar(CadastrarProduto dto)
+    {
         Produto novo = produtoMapper.toProdutoFromCadastrarProduto(dto);
-        if (dto.ingredientesIds() != null && !dto.ingredientesIds().isEmpty()) {
-            Set<ItemdeEstoque> ingredientes = new HashSet<>(itemdeEstoqueRepository.findAllById(dto.ingredientesIds()));
+        if (dto.listaIngredientes() != null && dto.listaIngredientes().size() > 0) {
+            Set<Ingrediente> ingredientes = dto.listaIngredientes().stream()
+                .map(d -> {
+                    Ingrediente ingrediente = produtoMapper.toIngredienteFromDto(d);
+                    ItemdeEstoque itemdeEstoque = itemdeEstoqueRepository
+                        .findById(d.itemdeEstoqueId()).orElse(null);
+                    ingrediente.setItemdeEstoque(itemdeEstoque);
+                    return ingrediente;
+                })
+                .collect(Collectors.toSet());
+            for (Ingrediente ing : ingredientes) {
+                IngredienteId id = new IngredienteId(
+                    ing.getItemdeEstoque().getId(), novo.getId()
+                );
+                ing.setId(id);
+                ing.setProduto(novo);
+            }
             novo.setIngredientes(ingredientes);
         }
-        return produtoRepository.save(novo);
+        novo = produtoRepository.save(novo);
+        return novo;
     }
 
     @Transactional
@@ -60,7 +80,7 @@ public class ProdutoService {
         return produtoRepository.saveAll(produtos);
     }
 
-    public List<Produto> filtrar(String nome, String categoria, Double precoMinimo, Double precoMaximo)
+    public List<ProdutoSaida> filtrar(String nome, String categoria, Double precoMinimo, Double precoMaximo)
     {
         List<Predicate<Produto>> filtros = new ArrayList<>();
 
@@ -74,7 +94,8 @@ public class ProdutoService {
             filtros.add(p -> p.getPrecoProduto() <= precoMaximo);        
         Predicate<Produto> filtro = filtros.stream().reduce((p1, p2) -> p1.and(p2)).orElse(p -> true);
         
-        return produtoRepository.findAll().stream().filter(filtro).toList();
+        return produtoRepository.findAll().stream().filter(filtro)
+            .map(p -> produtoMapper.toProdutoSaida(p)).toList();
     }
 
     public List<Produto> procurarTodos() {

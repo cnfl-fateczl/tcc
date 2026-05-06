@@ -21,5 +21,5 @@ public record CadastrarProduto (
     
     String codigoIfood,
 
-    Set<Long> ingredientesIds
+    Set<IngredienteDto> listaIngredientes
     ){}

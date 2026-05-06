@@ -39,11 +39,6 @@ public class Produto {
     @JsonIgnore
     private Set<DeliveryItem> deliveryItems = new HashSet<>();
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-        name = "produto_ingrediente",
-        joinColumns = @JoinColumn(name = "produto_id"),
-        inverseJoinColumns = @JoinColumn(name = "item_de_estoque_id")
-    )
-    private Set<ItemdeEstoque> ingredientes = new HashSet<>();
+    @OneToMany(mappedBy="produto", cascade=CascadeType.ALL, orphanRemoval=true)
+    private Set<Ingrediente> ingredientes = new HashSet<>();
 }
