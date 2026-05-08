@@ -4,4 +4,5 @@ public record IngredienteSaida
 (
     String nome,
     Integer quantidade
+    
 ) {}

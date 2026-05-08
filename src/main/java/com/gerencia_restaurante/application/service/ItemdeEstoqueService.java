@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.gerencia_restaurante.application.mapper.ItemdeEstoqueMapper;
+import com.gerencia_restaurante.application.port.in.AtualizarItemdeEstoque;
 import com.gerencia_restaurante.application.port.in.CadastrarItemdeEstoque;
 import com.gerencia_restaurante.domain.entity.ItemdeEstoque;
 import com.gerencia_restaurante.domain.repository.ItemdeEstoqueRepository;
@@ -69,11 +70,11 @@ public class ItemdeEstoqueService {
 
     //PATCH
     @Transactional
-    public ItemdeEstoque atualizarItemdeEstoqueParcial(CadastrarItemdeEstoque dto, Long id)
+    public ItemdeEstoque atualizarItemdeEstoqueParcial(AtualizarItemdeEstoque dto, Long id)
     {
         ItemdeEstoque existente = itemRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Item não encontrado com o Id: " + id));
-        itemMapper.updateEntityFromCadastrar(dto, existente);
+        itemMapper.updateEntityFromAtualizar(dto, existente);
         return itemRepository.save(existente);
     }
 

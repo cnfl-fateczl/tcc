@@ -39,9 +39,30 @@ public class ProdutoService {
     @Transactional
     public Produto atualizar(AtualizarProduto dto, Long id){
         Produto existente = produtoRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado com ID: " + dto.id()));
-        produtoMapper.updateProdutoFromDto(dto, existente);
-        return produtoRepository.save(existente);
+            .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado com o ID: " + id));
+        if (dto.listaIngredientes() != null && dto.listaIngredientes().size() > 0) {
+            Set<Ingrediente> ingredientes = dto.listaIngredientes().stream()
+                .map(d -> {
+                    Ingrediente ingrediente = produtoMapper.toIngredienteFromDto(d);
+                    ItemdeEstoque itemdeEstoque = itemdeEstoqueRepository
+                        .findById(d.itemdeEstoqueId()).orElse(null);
+                    ingrediente.setItemdeEstoque(itemdeEstoque);
+                    return ingrediente;
+                }).collect(Collectors.toSet());
+            for (Ingrediente ing : ingredientes){
+                IngredienteId ingid = new IngredienteId(
+                    existente.getId(), ing.getItemdeEstoque().getId());
+                ing.setId(ingid);
+                ing.setProduto(existente);
+            }
+
+        }
+        existente = produtoRepository.save(existente);
+        return existente;
+        
+        // Produto existente = produtoRepository.findById(id)
+        //         .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado com ID: " + dto.id()));
+        // produtoMapper.updateProdutoFromDto(dto, existente);
     }
 
     @Transactional
@@ -59,9 +80,8 @@ public class ProdutoService {
                 })
                 .collect(Collectors.toSet());
             for (Ingrediente ing : ingredientes) {
-                IngredienteId id = new IngredienteId(
-                    ing.getItemdeEstoque().getId(), novo.getId()
-                );
+                IngredienteId id = new IngredienteId(novo.getId(),
+                    ing.getItemdeEstoque().getId());
                 ing.setId(id);
                 ing.setProduto(novo);
             }
