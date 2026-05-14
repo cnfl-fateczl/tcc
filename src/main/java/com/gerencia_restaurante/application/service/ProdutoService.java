@@ -37,32 +37,36 @@ public class ProdutoService {
     private ItemdeEstoqueRepository itemdeEstoqueRepository;
 
     @Transactional
-    public Produto atualizar(AtualizarProduto dto, Long id){
+    public Produto atualizar(AtualizarProduto dto, Long id) {
         Produto existente = produtoRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado com o ID: " + id));
-        if (dto.listaIngredientes() != null && dto.listaIngredientes().size() > 0) {
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Produto não encontrado com o ID: " + id));
+        produtoMapper.updateProdutoFromDto(dto, existente);
+
+        if (dto.listaIngredientes() != null && !dto.listaIngredientes().isEmpty()) {
+            existente.getIngredientes().clear();
             Set<Ingrediente> ingredientes = dto.listaIngredientes().stream()
                 .map(d -> {
                     Ingrediente ingrediente = produtoMapper.toIngredienteFromDto(d);
+
                     ItemdeEstoque itemdeEstoque = itemdeEstoqueRepository
-                        .findById(d.itemdeEstoqueId()).orElse(null);
+                        .findById(d.itemdeEstoqueId())
+                        .orElseThrow(() -> new EntityNotFoundException(
+                            "ItemdeEstoque não encontrado com o ID: " + d.itemdeEstoqueId()));
                     ingrediente.setItemdeEstoque(itemdeEstoque);
                     return ingrediente;
-                }).collect(Collectors.toSet());
-            for (Ingrediente ing : ingredientes){
+                })
+                .collect(Collectors.toSet());
+
+            for (Ingrediente ing : ingredientes) {
                 IngredienteId ingid = new IngredienteId(
                     existente.getId(), ing.getItemdeEstoque().getId());
                 ing.setId(ingid);
                 ing.setProduto(existente);
             }
-
+            existente.setIngredientes(ingredientes);
         }
-        existente = produtoRepository.save(existente);
-        return existente;
-        
-        // Produto existente = produtoRepository.findById(id)
-        //         .orElseThrow(() -> new EntityNotFoundException("Produto não encontrado com ID: " + dto.id()));
-        // produtoMapper.updateProdutoFromDto(dto, existente);
+        return produtoRepository.save(existente);
     }
 
     @Transactional

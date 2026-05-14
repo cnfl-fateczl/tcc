@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.gerencia_restaurante.application.port.in.AtualizarItemdeEstoque;
 import com.gerencia_restaurante.application.port.in.CadastrarItemdeEstoque;
 import com.gerencia_restaurante.application.service.ItemdeEstoqueService;
 import com.gerencia_restaurante.domain.entity.ItemdeEstoque;
@@ -55,7 +56,7 @@ public class ItemdeEstoqueController {
     }
 
     @PatchMapping("/{id}")
-    public void atualizaItemdeEstoqueParcial(CadastrarItemdeEstoque dto, @PathVariable Long id){
+    public void atualizaItemdeEstoqueParcial(AtualizarItemdeEstoque dto, @PathVariable Long id){
         itemService.atualizarItemdeEstoqueParcial(dto, id);
     }
 
