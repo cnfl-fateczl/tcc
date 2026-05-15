@@ -56,9 +56,7 @@ public class ItemdeEstoqueController {
     }
 
     @PatchMapping("/{id}")
-    public void atualizaItemdeEstoqueParcial(AtualizarItemdeEstoque dto, @PathVariable Long id){
+    public void atualizaItemdeEstoqueParcial(@RequestBody AtualizarItemdeEstoque dto, @PathVariable Long id){
         itemService.atualizarItemdeEstoqueParcial(dto, id);
     }
-
-
 }
